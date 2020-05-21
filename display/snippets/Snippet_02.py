@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 from inky import InkyPHAT
 from PIL import Image, ImageFont, ImageDraw
@@ -9,10 +12,13 @@ deviceColour = "black"
 
 
 # Frigged values for testing
-temperature = 25.46
-pressure = 1007
-humidity = 40.17
-resistance = 960000
+temperature = "25.46"
+pressure = "1007mB"
+humidity = "40.17%"
+resistance = "960KΩ"
+degrees = u"\u00B0"
+ohms = u"\u2126"
+temperature = temperature + degrees + "C " + ohms
 
 
 
@@ -41,12 +47,13 @@ def initialiseImage():
 
 def initialiseFont():
     global font
-    font = ImageFont.truetype(FredokaOne, 22)
-
+#    font = ImageFont.truetype(FredokaOne, 22)
+    font = ImageFont.truetype("DejaVuSansCondensed.ttf", 22)
 
 def HelloWorld():
     print("In HelloWorld function")
-    message = time.strftime("%d %B %-I:%M %p")
+#    message = time.strftime("%d %B %-I:%M %p")
+    message = temperature
     w, h = font.getsize(message)
     x = (inkyDisplay.WIDTH / 2) - (w / 2)
     y = (inkyDisplay.HEIGHT / 2) - (h / 2)
