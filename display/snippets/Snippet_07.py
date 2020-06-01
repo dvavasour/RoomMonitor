@@ -18,41 +18,25 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)    # We'll f
 
 
 # Some constants
+#### DV 01JUN2020 - These should go out into the config file
+
 deviceColour = "black"
 totalWidth = 212
 totalHeight = 104
 
-
-# Frigged values for testing
-temperature = "25.46"
-pressure = "1007"
-humidity = "40.17"
-resistance = "960"
 degrees = u"\u00B0"
 ohms = u"\u2126"
 
+boxBorderWidth = 2    # Used 01JUN2020
+textBorderWidth = 5    # Used 01JUN2020
 
-temperature = "T: " + temperature + degrees + "C"
-pressure = "P: " + pressure + "mB"
-humidity = "H: " + humidity + "%"
-resistance = "R: " + resistance + "K" + ohms
-
-boxBorderWidth = 2
-textBorderWidth = 5
-
-topLeftX = 15
-topLeftY = 15
-topRightX = 202
-topRightY = 10
-bottomLeftX = 10
-bottomLeftY = 94
-bottomRightX = 202
-bottomRightY = 94
-
+#### DV 01JUN2020 - These could go into an initialisation function
 centreVertical = totalWidth / 2
 centreHorizontal = totalHeight / 2
 outerCentreTuple = (centreVertical, centreHorizontal)
 
+conf_filename = 'Snippet.conf'
+conf_stanza = 'REST-stuff'
 
 
 
@@ -93,9 +77,13 @@ def readData(conf_filename, \
      results = {}   # Empty dictionary for data
      rows = REST_output.text.split('\n')    # Splunk returns broken JSON so we have to parse it a row at a time
      for row in rows:
-          if row:    # Split leaves and empty row so we must guard against that
+          if row:    # Split leaves an empty row so we must guard against that
                fred = json.loads(row)
+               
+               #### DV 01JUN2020 - Consider tokenising these identifiers from the Splunk report
+               
                results[fred['result']['metric_name']] = fred['result']['int_avg']    # So we create a dictionary with the results in. If only Splunk would return decent JSON...
+               
                # print(fred['result']['metric_name'])
                # print('row: ',row)
      print(results)
@@ -105,6 +93,19 @@ def readData(conf_filename, \
 def formatResults(conf_filename, \
                   conf_stanza
                  ):
+    """
+
+    Summary: Output the values with the precision needed for display
+
+    Inputs: conf_filename (to be passed to readData)
+            conf_stanza (to be passed to readData)
+
+    Return Values: formattedResults - a dictionary where temperature,
+                                      humidity, pressure and
+                                      gas resistance are correctly
+                                      formatted strings
+
+    """
     results = readData(conf_filename, \
                        conf_stanza
                       )
@@ -214,31 +215,29 @@ def drawBottomRight(message):
 
     draw.text((messageTopLeftTuple), message, inkyDisplay.BLACK, font)
     
+def drawTimeString():
+    message = getTimeString()
+    messageWidth, messageHeight = font.getsize(message)
+
+    messageTopLeftX = centreVertical - (messageWidth / 2)
+    messageTopLeftY = totalHeight - boxBorderWidth - messageHeight
+    messageTopLeftTuple = (messageTopLeftX, messageTopLeftY)
+
+    draw.text((messageTopLeftTuple), message, inkyDisplay.BLACK, font)
 
     
-def HelloWorld():
-    print("In HelloWorld function")
-#    message = time.strftime("%d %B %-I:%M %p")
-    message = temperature
-    w, h = font.getsize(message)
-    x = (inkyDisplay.WIDTH / 2) - (w / 2)
-    y = (inkyDisplay.HEIGHT / 2) - (h / 2)
-    width = inkyDisplay.WIDTH
-    height = inkyDisplay.HEIGHT
-    print("Display Width", width, "Display Height", height, "Text Width", w, "Text Height", h)
-    # Basic stuff to position the message in the centre of the screen
 
-#    draw.line((69, 36, 69, 81), 1)    # Vertical line in black
-#    draw.rectangle ([(10,10), (40,40)], 1) # Rectangle ([(x1, y1), (x2, y2)],colour)
-#    draw.rectangle ([(13,13), (37,37)], 0)
-
-    # draw.text((x, y), message, inkyDisplay.BLACK, font)
-    # I think this is where you set the colour that's being displayed
+    
+    
+def showImage():
     
     inkyDisplay.set_image(img)
     inkyDisplay.show()
     
-    
+def getTimeString():
+    timeString = time.strftime("%d %B %-I:%M %p")
+    return timeString
+
     
 def default():
     print("Hello there")
@@ -247,21 +246,19 @@ def main() :
     initialiseDisplay()
     initialiseImage()
     initialiseFont()
-    # default()
 
-    conf_filename = 'Snippet.conf'
-    conf_stanza = 'REST-stuff'
 
     formattedResults = formatResults(conf_filename, \
                                      conf_stanza
                                     )
-    print(formattedResults)
     
     drawTopLeft("T: " + formattedResults['temperature'] + degrees + "C")
     drawTopRight("H: " + formattedResults['humidity'] + "%")
     drawBottomLeft("P: " + formattedResults['pressure'] + "mB")
     drawBottomRight("R: " + formattedResults['gas_resistance'] + "K" + ohms)
-    HelloWorld()
+
+    drawTimeString()
+    showImage()
 
 if __name__ == '__main__':
     main()
